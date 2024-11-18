@@ -1,39 +1,42 @@
-import * as THREE from 'three'; // This part imports all the exported members from the three module and assigns them to the THREE namespace.
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import * as THREE from 'three'; // This imports all the exported members from the three module and assigns them to the THREE namespace.
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // Importing the OrbitControls for enabling camera controls
 
-const scene = new THREE.Scene(); // Creating a new scene
+// Creating a new scene
+const scene = new THREE.Scene();
 
 // Creating the geometry and material for a cube
-const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-const cubeMaterial = new THREE.MeshBasicMaterial({ color: 'red' });
+const cubeGeometry = new THREE.BoxGeometry(1, 1, 1); // Defines the dimensions of the cube (width, height, depth)
+const cubeMaterial = new THREE.MeshBasicMaterial({ color: 'red' }); // Defines the basic material with a red color
 
-// A mesh takes two arguments: it takes geometry and a material
-const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial); // Correctly create a mesh with geometry and material
-
-// console.log(cube); // Logging the cube to verify the mesh is created
-console.log(scene); // Logging the scene
-
-// Add the cube to the scene
+// Creating a mesh by combining the geometry and material
+const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial); // Combines geometry and material to create a 3D object (the cube)
 scene.add(cubeMesh); // Adding the cube mesh directly to the scene
 
 // Initializing the camera
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-// Field of view of the camera, aspect ratio of the actual scene itself, camera near property which defines the closest visible distance
+// Parameters: (field of view, aspect ratio, near clipping plane, far clipping plane)
 
-camera.position.z = 5; // Positioning the camera on the z-axis
-scene.add(camera); // Optional: Adding the camera to the scene (not mandatory but okay)
+// Positioning the camera to view the scene from a distance
+camera.position.z = 5; // The camera is positioned 5 units away on the z-axis
 
 // Selecting the canvas element (ensure your HTML has a <canvas class="threejs"></canvas>)
 const canvas = document.querySelector('canvas.threejs');
 
 // Initializing the renderer with the selected canvas
 const renderer = new THREE.WebGLRenderer({ canvas });
+renderer.setSize(window.innerWidth, window.innerHeight); // Setting the renderer size to match the window size
 
-const controls = new OrbitControls(camera,canvas)//instantiating the controls
+// Instantiating the OrbitControls to enable user interaction with the scene (e.g., rotating and zooming)
+const controls = new OrbitControls(camera, canvas); // Passes the camera and canvas to the controls
+controls.enableDamping = true; // Enables smooth damping (inertia), which gives a smoother feel
+controls.dampingFactor = 0.05; // Controls the amount of damping
 
-renderer.setSize(window.innerWidth, window.innerHeight); // Setting the size of the renderer to match the window size
+// The render loop function for continuously rendering the scene
+const renderloop = () => {
+  controls.update(); // Updates the controls to apply damping and other properties
+  renderer.render(scene, camera); // Renders the scene from the perspective of the camera
+  window.requestAnimationFrame(renderloop); // Recursively calls the render loop for animation
+};
 
-
-
-// Render the scene with the camera
-renderer.render(scene, camera); // Render call to display the scene through the camera
+// Calling the render loop function to start the animation loop
+renderloop();
