@@ -1,42 +1,91 @@
-import * as THREE from 'three'; // This imports all the exported members from the three module and assigns them to the THREE namespace.
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // Importing the OrbitControls for enabling camera controls
+import * as THREE from 'three'; // Importing the core THREE.js library for creating 3D scenes
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // Importing OrbitControls to enable camera interaction
 
 // Creating a new scene
-const scene = new THREE.Scene();
+const scene = new THREE.Scene(); // Scene is the space where all objects, cameras, and lights are placed
+// scene.background = new THREE.Color("hsl(70, 80%, 90%)")
 
 // Creating the geometry and material for a cube
-const cubeGeometry = new THREE.BoxGeometry(1, 1, 1); // Defines the dimensions of the cube (width, height, depth)
-const cubeMaterial = new THREE.MeshBasicMaterial({ color: 'red' }); // Defines the basic material with a red color
+const cubeGeometry = new THREE.BoxGeometry(1, 1, 1,2,2,2); // A simple 1x1x1 cube geometry
+const cubeMaterial = new THREE.MeshBasicMaterial({ color: 'red', wireframe: true }); // Red material with a wireframe to see through the shape
 
-// Creating a mesh by combining the geometry and material
-const cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial); // Combines geometry and material to create a 3D object (the cube)
-scene.add(cubeMesh); // Adding the cube mesh directly to the scene
+// Creating cube meshes with positions
+const cubeMesh1 = new THREE.Mesh(cubeGeometry, cubeMaterial); // Mesh for the left cube
+cubeMesh1.position.set(-1.5, 1, 0); // Setting position to the left
 
-// Initializing the camera
+// Defining vertices for a 5-sided polygon (pentagon)
+const pentagonVertices = new Float32Array([
+  0, 1, 0,  // Vertex 1 (top)
+  -0.95, 0.31, 0,  // Vertex 2 (top left)
+  -0.59, -0.81, 0, // Vertex 3 (bottom left)
+  0.59, -0.81, 0,  // Vertex 4 (bottom right)
+  0.95, 0.31, 0,   // Vertex 5 (top right)
+  0, 1, 0   // Closing the loop back to Vertex 1 to form the shape
+]);
+const bufferAttribute = new THREE.BufferAttribute(pentagonVertices, 3); // Creating a buffer attribute with 3 components per vertex
+
+// Creating a BufferGeometry for the pentagon shape
+const pentagonGeometry = new THREE.BufferGeometry();
+pentagonGeometry.setAttribute('position', bufferAttribute); // Setting the position attribute with vertex data
+
+// Creating the mesh for the pentagon
+const pentagonMesh = new THREE.Mesh(pentagonGeometry, cubeMaterial); // Using the same material for consistency
+pentagonMesh.position.set(0, 0, 0); // Centering the custom shape in the scene
+
+const cubeMesh3 = new THREE.Mesh(cubeGeometry, cubeMaterial); // Mesh for the right cube
+cubeMesh3.position.set(1.5, 1, 0); // Setting position to the right
+
+// Creating a group to hold the meshes
+const group = new THREE.Group();
+group.add(cubeMesh1); // Adding the left cube to the group
+// group.add(pentagonMesh); // Adding the pentagon shape to the group
+// group.add(cubeMesh3); // Adding the right cube to the group
+
+// Scaling and positioning the group
+group.scale.set(1.5, 1.5, 1.5); // Enlarging the group slightly for better visualization
+group.position.z = 0; // Positioning the group on the z-axis
+
+// Adding the group to the scene
+scene.add(group);
+
+// Adding an axis helper for reference (shows x, y, z axes)
+const axisHelper = new THREE.AxesHelper(2);
+scene.add(axisHelper); // Helps visualize the coordinate axes
+
+// Initializing the camera with a perspective view
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-// Parameters: (field of view, aspect ratio, near clipping plane, far clipping plane)
+camera.position.set(0, 2, 10); // Positioning the camera to have a top-down perspective
 
-// Positioning the camera to view the scene from a distance
-camera.position.z = 5; // The camera is positioned 5 units away on the z-axis
-
-// Selecting the canvas element (ensure your HTML has a <canvas class="threejs"></canvas>)
+// Selecting the canvas element (ensure an HTML element <canvas class="threejs"></canvas> exists)
 const canvas = document.querySelector('canvas.threejs');
 
-// Initializing the renderer with the selected canvas
-const renderer = new THREE.WebGLRenderer({ canvas });
-renderer.setSize(window.innerWidth, window.innerHeight); // Setting the renderer size to match the window size
+// Initializing the renderer
+const renderer = new THREE.WebGLRenderer({ 
+  canvas,
+  antialias: true // Enabling antialiasing for smoother edges
+});
+renderer.setSize(window.innerWidth, window.innerHeight); // Setting renderer size to window size
+renderer.setPixelRatio(window.devicePixelRatio); // Adjusting pixel ratio for sharper images
 
-// Instantiating the OrbitControls to enable user interaction with the scene (e.g., rotating and zooming)
-const controls = new OrbitControls(camera, canvas); // Passes the camera and canvas to the controls
-controls.enableDamping = true; // Enables smooth damping (inertia), which gives a smoother feel
-controls.dampingFactor = 0.05; // Controls the amount of damping
+// Initializing OrbitControls for interactive camera control
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; // Enabling smooth movement for the controls
+controls.dampingFactor = 0.05; // Setting the damping factor
 
-// The render loop function for continuously rendering the scene
-const renderloop = () => {
-  controls.update(); // Updates the controls to apply damping and other properties
-  renderer.render(scene, camera); // Renders the scene from the perspective of the camera
-  window.requestAnimationFrame(renderloop); // Recursively calls the render loop for animation
+// Resize event listener to adjust the camera and renderer on window resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight; // Updating camera aspect ratio
+  camera.updateProjectionMatrix(); // Recalculating projection matrix
+  renderer.setSize(window.innerWidth, window.innerHeight); // Adjusting renderer size
+});
+
+// Render loop function to animate the scene
+const renderLoop = () => {
+  // group.rotation.y += THREE.MathUtils.degToRad(1); // Rotating the group around the y-axis
+  controls.update(); // Updating controls for damping
+  renderer.render(scene, camera); // Rendering the scene from the perspective of the camera
+  window.requestAnimationFrame(renderLoop); // Recursively calling the render loop
 };
 
-// Calling the render loop function to start the animation loop
-renderloop();
+// Start the render loop
+renderLoop();
