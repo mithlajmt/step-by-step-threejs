@@ -1,9 +1,29 @@
 import * as THREE from 'three'; // Importing the core THREE.js library for creating 3D scenes
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // Importing OrbitControls to enable camera interaction
+import {Pane} from "tweakpane"
 
 // Creating a new scene
+const pane = new Pane (); 
 const scene = new THREE.Scene(); // Scene is the space where all objects, cameras, and lights are placed
 // scene.background = new THREE.Color("hsl(70, 80%, 90%)")
+
+const geometry = new THREE.BoxGeometry(1,1,1);
+const planeGeometry = new THREE.PlaneGeometry(1,1)
+const material = new THREE.MeshBasicMaterial({
+  color: 0x00ff00,
+  transparent: true,
+  opacity: 0.5,
+  side: THREE.DoubleSide,
+
+})
+
+const mesh = new THREE.Mesh(geometry, material)
+const mesh2 = new THREE.Mesh(geometry, material)
+const plainMesh = new THREE.Mesh(planeGeometry, material)
+mesh.position.x = 1.5
+plainMesh.position.x = -2
+
+
 
 // Creating the geometry and material for a cube
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1,2,2,2); // A simple 1x1x1 cube geometry
@@ -46,8 +66,12 @@ group.scale.set(1.5, 1.5, 1.5); // Enlarging the group slightly for better visua
 group.position.z = 0; // Positioning the group on the z-axis
 
 // Adding the group to the scene
-scene.add(group);
-
+// scene.add(group);
+scene.add(mesh);
+scene.add(mesh2);
+scene.add(plainMesh);
+scene.fog = new THREE.Fog(0xffffff,1,10)
+scene.background = new THREE.Color(0xffffff)
 // Adding an axis helper for reference (shows x, y, z axes)
 const axisHelper = new THREE.AxesHelper(2);
 scene.add(axisHelper); // Helps visualize the coordinate axes
@@ -80,8 +104,10 @@ window.addEventListener('resize', () => {
 });
 
 // Render loop function to animate the scene
-const renderLoop = () => {
-  // group.rotation.y += THREE.MathUtils.degToRad(1); // Rotating the group around the y-axis
+const renderLoop = () => {  
+  mesh2.rotation.y += THREE.MathUtils.degToRad(2); // Rotating the group around the y-axis
+  plainMesh.rotation.y += THREE.MathUtils.degToRad(3); // Rotating the group around the y-axis
+  mesh.rotation.y += THREE.MathUtils.degToRad(3); // Rotating the group around the y-axis
   controls.update(); // Updating controls for damping
   renderer.render(scene, camera); // Rendering the scene from the perspective of the camera
   window.requestAnimationFrame(renderLoop); // Recursively calling the render loop
